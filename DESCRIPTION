@@ -1,0 +1,21 @@
+Package: cinch
+Type: Package
+Title: Concentration INdex Correction Helper
+Version: 0.1.0
+Authors: c(
+    person(
+      "Sarah", "Lotspeich",
+      email = "lotspes@wfu.edu",
+      role = c("aut", "cre")
+    ), 
+    person(
+      "Cassandra", "Hung", 
+      role = c("aut", "cre"")
+    )
+  )
+Description: Uses moment-based estimator to correct the concentration index for 
+    measurement error in the ranking variable.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.3.3
