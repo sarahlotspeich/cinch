@@ -48,12 +48,12 @@ mochi = function(health, unval_exposure, val_exposure, return_naive = FALSE) {
   # Return estimates
   if (return_naive) {
     return(list(
-      ci.moment = as.numeric(ci_xmb_varRstar),
+      ci.moment = as.numeric(ci_xmb),
       ci.naive = as.numeric(ci_xstar))
       )
   } else {
     return(list(
-      ci.moment = as.numeric(ci_xmb_varRstar)
+      ci.moment = as.numeric(ci_xmb)
       )
     )
   }
