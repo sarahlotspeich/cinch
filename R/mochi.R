@@ -5,56 +5,43 @@
 #' @param unval_exposure vector (of the same length as \code{health}) containing the error-prone, unvalidated exposure on which all observations will be ranked
 #' @param val_exposure vector (of the same length as \code{health}) containing the error-free, validated exposure on which all observations will be ranked. For observations that were not validated, this vector should contain \code{NA}.
 #' @param return_naive logical for whether the naive estimate (based only on \code{unval_exposure}) should be returned (if \code{TRUE}). The default is \code{FALSE}, in which case only the moment-based estimate is returned.
+#' @param include_se logical for whether jackknife standard error estimated should be returned
 #' @return a list with the concentration index estimates requested
 #' @export
 
-mochi = function(health, unval_exposure, val_exposure, return_naive = FALSE) {
-  # Save useful constants
-  n = length(unval_exposure) ## total number of observations
-  nv = sum(!is.na(val_exposure)) ## size of the validation sample
-
-  # Define validation indicator
-  V = !is.na(val_exposure)
-
-  # Calculate rankings
-  ## Error-prone exposures' fractional ranks (all observations)
-  Rstar = (rank(unval_exposure) - 1) / n + 1 / (2 * n)
-  ## Error-free exposures' fractional ranks (validation subsample)
-  Rval = rep(x = NA, length = n) ## initialize as NA
-  Rval[V] = (rank(val_exposure[V]) - 1) / nv + 1 / (2 * nv)
-
-  # Calculate error magnitude (validation subsample)
-  Wval = Rstar - Rval ## W = R* - R
-
-  # Use validation subset to estimate quantities in the bias factor
-  varRval = var(Rval, na.rm = TRUE) ## Var(R)
-  varWval = var(Wval, na.rm = TRUE) ## Var(W)
-  covRWval = cov(Rval, Wval, use = "complete.obs") ## Cov(R,W)
-  lambdahat_varRval = (varRval + covRWval) /
-    (varRval + varWval + 2 * covRWval) ## Estimated bias factor
-
-  # Estimate the concentratioin index
-  ## Naive: Using ranks based on error-prone for all observations
-  mu_hat <- mean(health)
-  varRstar <- var(Rstar) ## Var(R*) = Var(R)
-  fit_ci_naive <- lm(health ~ Rstar)
-  beta1star_hat <- fit_ci_naive$coefficients[2]
-  ci_premult = 2 * varRstar / mu_hat
-  ci_xstar <- ci_premult * beta1star_hat # Error-prone CI
-
-  ## Moment-based: Divide naive by estimate of bias factor
-  ci_xmb <-  ci_xstar / lambdahat_varRval
-
+mochi = function(health, unval_exposure, val_exposure, return_naive = FALSE, include_se = FALSE) {
+  c_hat <- mochi_estimate(health, unval_exposure, val_exposure, return_naive) 
+  if(include_se) {
+    n <- length(health)
+    jack_ci_mb <- rep(NA, n)
+    for(i in 1:n) {
+      Y <- health[-i]
+      Xstar <- unval_exposure[-i]
+      X <- val_exposure[-i]
+      
+      # Compute moment-based concentration index
+      jack_ci_mb[i] <- mochi_estimate(health = Y, 
+                             unval_exposure = Xstar, 
+                             val_exposure = X,
+                             return_naive = FALSE)[[1]]
+    }
+    se_jack <- sqrt((n - 1)/n * sum((jack_ci_mb - mean(jack_ci_mb))^2))
+  } else {
+    se_jack = NA
+  }
+  
   # Return estimates
   if (return_naive) {
     return(list(
-      ci.moment = as.numeric(ci_xmb),
-      ci.naive = as.numeric(ci_xstar))
-      )
+      ci.moment = c_hat[[1]],
+      ci.moment.se = se_jack,
+      ci.naive = c_hat[[2]]
+    ))
   } else {
     return(list(
-      ci.moment = as.numeric(ci_xmb)
-      )
+      ci.moment = c_hat[[1]],
+      ci.moment.se = se_jack
+    )
     )
   }
 }

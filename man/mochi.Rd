@@ -5,7 +5,13 @@
 \title{Moment-based measurement error correction for the concentration index
 This function returns the moment-based concentration index estimates, correcting for measurement error in the rankingn variable by incorporating partial validation data.}
 \usage{
-mochi(health, unval_exposure, val_exposure, return_naive = FALSE)
+mochi(
+  health,
+  unval_exposure,
+  val_exposure,
+  return_naive = FALSE,
+  include_se = FALSE
+)
 }
 \arguments{
 \item{health}{vector containing the health outcomes for all observations}
@@ -15,6 +21,8 @@ mochi(health, unval_exposure, val_exposure, return_naive = FALSE)
 \item{val_exposure}{vector (of the same length as \code{health}) containing the error-free, validated exposure on which all observations will be ranked. For observations that were not validated, this vector should contain \code{NA}.}
 
 \item{return_naive}{logical for whether the naive estimate (based only on \code{unval_exposure}) should be returned (if \code{TRUE}). The default is \code{FALSE}, in which case only the moment-based estimate is returned.}
+
+\item{include_se}{logical for whether jackknife standard error estimated should be returned}
 }
 \value{
 a list with the concentration index estimates requested
