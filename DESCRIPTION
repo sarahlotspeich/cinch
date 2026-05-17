@@ -1,6 +1,6 @@
-Package: cinch
+Package: mochi
 Type: Package
-Title: Concentration INdex Correction Helper
+Title: Moment-based correction to quantify health disparities from error-prone data with the concentration index
 Version: 0.1.0
 Authors: c(
     person(
