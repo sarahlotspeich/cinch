@@ -1,0 +1,156 @@
+---
+title: "Attenuated, exaggerated, or flipped health disparities: Ramifications of measurement error on concentration indices"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, fig.width = 6, fig.height = 4)
+```
+
+This repository contains `R` code to reproduce results from the manuscript by Hung, Green, and Lotspeich (2025+). 
+
+## Packages 
+
+Our implementation of the health disparities methods in the paper rely on the following `R` packages, which can be installed and loaded as follows. 
+
+```{r}
+# Run once: install.packages(c("dplyr", "ggplot2", "latex2exp", "scales"))
+library(dplyr) ## for data wrangling
+library(ggplot2) ## for concentration curves
+library(latex2exp) ## for LaTeX in plots
+library(scales) ## for % labels on concentration curves
+
+# Run once: devtools::install_github("sarahlotspeich/mochi")
+library(mochi) ## for moment-based correction
+```
+
+## Electronic Health Records Data: Diabetes and Proximity to Healthy Foods 
+We begin with the electronic health records (EHR) data from our previous work, which already has diabetes diagnosis (yes/no) and proximity to healthy foods (both error-free and error-prone). With permission from the Institutional Review Board at Wake Forest University School of Medicine, this de-identified version of the study dataset was made available with our prior work as Supplementary Material. These data can be loaded as follows. 
+
+```{r}
+# Read in the data from CSV
+ehr_food = read.csv("https://raw.githubusercontent.com/sarahlotspeich/ME_Disparities_HSORM/refs/heads/main/me_disparities_analysis_2020.csv") |> 
+  select(ID, MAP_PROXIMITY, STRAIGHT_PROXIMITY)
+
+## Inspect data summary
+ehr_food |> 
+  summary()
+```
+
+We retain the following columns from the full electronic health records (EHR) dataset. 
+
+  - `ID`: a deidentified patient identifier 
+  - `MAP_PROXIMITY`: error-free, map-based proximity to healthy foods (in miles)
+  - `STRAIGHT_PROXIMITY`: error-prone, straight-line proximity to healthy foods (in miles)
+  
+Each row represents data for one patient. We also add columns with the fractional ranks for all patients based on `MAP_PROXIMITY` and `STRAIGHT_PROXIMITY`. 
+
+```{r}
+# Add columns for fractional ranks based on error-prone and error-free X
+ehr_food = ehr_food |> 
+  mutate(STRAIGHT_RANK = (rank(STRAIGHT_PROXIMITY) - 1) / n() + 1 / (2 * n()), 
+         MAP_RANK = (rank(MAP_PROXIMITY) - 1) / n() + 1 / (2 * n()))
+```
+
+## Monte Carlo Simulation: Generating Hemoglobin A1c
+
+For the current work, we wanted to simulate hemoglobin A1c (HbA1c, a biomarker for blood glucose that is key for monitoring type-2 diabetes) for these patients. The goal was to demonstrate how these patients' error-prone versus error-free proximity to healthy foods (from the real EHR data) may tell a different story about potential disparities in HbA1c. In the code chunk below, we demonstrate how HbA1c was generated for a single Monte Carlo simulation, where the targeted magnitude of the disparity was $C \approx 0.5$.  
+
+```{r}
+# Set parameters to generate Y|R
+beta0 = 2.5     ## average HbA1c for patients with optimal proximity (0 miles)
+beta1 = -3.0    ## coefficient on fractional rank based of proximity (in miles)
+
+# Add column with generated Y|R
+ehr_food = ehr_food |> 
+  mutate(HBA1C = rnorm(n = n(), 
+                       mean = beta0 + beta1 * MAP_RANK, 
+                       sd = sigma))
+
+## Inspect data summary
+ehr_food |> 
+  summary()
+```
+
+## Exploratory Data Analysis 
+
+```{r}
+ehr_food |> 
+  ggplot(aes(x = MAP_PROXIMITY, y = STRAIGHT_PROXIMITY)) + 
+  geom_point() + 
+  geom_smooth(se = FALSE) + 
+  coord_equal() + 
+  theme_minimal(base_size = 14) + 
+  labs(x = TeX("Map-Based Proximity $X$"), 
+       y = TeX("Straight-Line Proximity $X^*$"))
+```
+
+```{r}
+ehr_food |> 
+  ggplot(aes(x = MAP_RANK, y = STRAIGHT_RANK)) + 
+  geom_point() + 
+  geom_smooth(se = FALSE) + 
+  coord_equal() + 
+  theme_minimal(base_size = 14) + 
+  labs(x = TeX("Fractional Rank $R$ Based on Map-Based Proximity $X$"), 
+       y = TeX("Fractional Rank $R^*$ Based on Straight-Line Proximity $X^*$"))
+```
+
+## Analysis 
+
+### Concentration Curve
+
+```{r}
+## Create negative proximity to rank from farthest (most disadvantaged) --> nearest (least disadvantaged)
+ehr_food = ehr_food |> 
+  dplyr::mutate(NEG_STRAIGHT_PROXIMITY = - STRAIGHT_PROXIMITY, 
+                NEG_MAP_PROXIMITY = - MAP_PROXIMITY)
+
+## Make dataset for concentration curves (both distance types)
+cc_dat = make_cc_dat(health_var = HBA1C, 
+                     group_by_var = NEG_STRAIGHT_PROXIMITY, 
+                     data = ehr_food) |> 
+  mutate(PROXIMITY = "Straight-Line") |> 
+  bind_rows(
+    make_cc_dat(health_var = DIABETES, 
+                group_by_var = NEG_MAP_PROXIMITY, 
+                data = ehr_food) |> 
+      mutate(PROXIMITY = "Map-Based")
+  ) |> 
+  mutate(PROXIMITY = factor(x = PROXIMITY, 
+                            levels = c("Straight-Line", "Map-Based")))
+
+## Use ggplot() to build concentration curves (both distance types)
+cc_dat |> 
+  ggplot(aes(x = cumprop_num, y = cumprop_health, color = PROXIMITY)) + 
+  geom_abline(slope = 1, intercept = 0, linetype = 2, color = "black") + 
+  geom_line(linewidth = 1.2, alpha = 1) + 
+  coord_equal() + 
+  theme_minimal(base_size = 14) + 
+  labs(x = "Cumulative Proportion of Patients\n(Ranked by Proximity)", 
+       y = "Cumulative Proportion of Diabetes Cases") + 
+  theme(axis.title = element_text(color = "black", face = "bold"), 
+        legend.title = element_text(color = "black", face = "bold"), 
+        legend.position = "top") + 
+  scale_x_continuous(labels = percent_format()) + 
+  scale_y_continuous(labels = percent_format()) + 
+  scale_color_manual(values = cols, name = "Distance")
+```
+
+### Concentration Index
+
+```{r}
+## Concentration index based on straight-line proximity (unbinned)
+ci_straight = ci(ineqvar = ehr_food$NEG_STRAIGHT_PROXIMITY, ### Food environment exposure
+                 outcome = ehr_food$HBA1C, ### Health outcome 
+                 type = "CIw", ### Wagstaff's correction for binary health outcome
+                 robust_se = TRUE) ### Use sandwich standard errors for confidence interval 
+summary(ci_straight)
+
+## Concentration index based on map-based proximity (unbinned)
+ci_map = ci(ineqvar = ehr_food$NEG_MAP_PROXIMITY, ### Food environment exposure
+                 outcome = ehr_food$HBA1C, ### Health outcome 
+                 type = "CIw", ### Wagstaff's correction for binary health outcome
+                 robust_se = TRUE) ### Use sandwich standard errors for confidence interval 
+summary(ci_map)
+```
