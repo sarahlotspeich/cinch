@@ -16,15 +16,17 @@ Our implementation of the health disparities methods in the paper rely on the fo
 ```{r}
 # Run once: install.packages(c("dplyr", "ggplot2", "latex2exp", "scales"))
 library(dplyr) ## for data wrangling
-library(ggplot2) ## for concentration curves
+library(ggplot2) ## for plots 
 library(latex2exp) ## for LaTeX in plots
-library(scales) ## for % labels on concentration curves
+library(scales) ## for percent labels in plots
+library(ggconc) ## for concentration curves
 
 # Run once: devtools::install_github("sarahlotspeich/mochi")
 library(mochi) ## for moment-based correction
 ```
 
 ## Electronic Health Records Data: Diabetes and Proximity to Healthy Foods 
+
 We begin with the electronic health records (EHR) data from our previous work, which already has diabetes diagnosis (yes/no) and proximity to healthy foods (both error-free and error-prone). With permission from the Institutional Review Board at Wake Forest University School of Medicine, this de-identified version of the study dataset was made available with our prior work as Supplementary Material. These data can be loaded as follows. 
 
 ```{r}
@@ -48,8 +50,8 @@ Each row represents data for one patient. We also add columns with the fractiona
 ```{r}
 # Add columns for fractional ranks based on error-prone and error-free X
 ehr_food = ehr_food |> 
-  mutate(STRAIGHT_RANK = (rank(STRAIGHT_PROXIMITY) - 1) / n() + 1 / (2 * n()), 
-         MAP_RANK = (rank(MAP_PROXIMITY) - 1) / n() + 1 / (2 * n()))
+  mutate(STRAIGHT_RANK = (rank(-STRAIGHT_PROXIMITY) - 1) / n() + 1 / (2 * n()), 
+         MAP_RANK = (rank(-MAP_PROXIMITY) - 1) / n() + 1 / (2 * n()))
 ```
 
 ## Monte Carlo Simulation: Generating Hemoglobin A1c
@@ -62,10 +64,11 @@ beta0 = 2.5     ## average HbA1c for patients with optimal proximity (0 miles)
 beta1 = -3.0    ## coefficient on fractional rank based of proximity (in miles)
 
 # Add column with generated Y|R
+set.seed(918) ## for reproducibility
 ehr_food = ehr_food |> 
   mutate(HBA1C = rnorm(n = n(), 
                        mean = beta0 + beta1 * MAP_RANK, 
-                       sd = sigma))
+                       sd = 1))
 
 ## Inspect data summary
 ehr_food |> 
@@ -98,43 +101,27 @@ ehr_food |>
 
 ## Analysis 
 
-### Concentration Curve
+### Concentration Curves
 
 ```{r}
-## Create negative proximity to rank from farthest (most disadvantaged) --> nearest (least disadvantaged)
-ehr_food = ehr_food |> 
-  dplyr::mutate(NEG_STRAIGHT_PROXIMITY = - STRAIGHT_PROXIMITY, 
-                NEG_MAP_PROXIMITY = - MAP_PROXIMITY)
-
-## Make dataset for concentration curves (both distance types)
-cc_dat = make_cc_dat(health_var = HBA1C, 
-                     group_by_var = NEG_STRAIGHT_PROXIMITY, 
-                     data = ehr_food) |> 
-  mutate(PROXIMITY = "Straight-Line") |> 
-  bind_rows(
-    make_cc_dat(health_var = DIABETES, 
-                group_by_var = NEG_MAP_PROXIMITY, 
-                data = ehr_food) |> 
-      mutate(PROXIMITY = "Map-Based")
-  ) |> 
-  mutate(PROXIMITY = factor(x = PROXIMITY, 
-                            levels = c("Straight-Line", "Map-Based")))
-
-## Use ggplot() to build concentration curves (both distance types)
-cc_dat |> 
-  ggplot(aes(x = cumprop_num, y = cumprop_health, color = PROXIMITY)) + 
-  geom_abline(slope = 1, intercept = 0, linetype = 2, color = "black") + 
-  geom_line(linewidth = 1.2, alpha = 1) + 
-  coord_equal() + 
-  theme_minimal(base_size = 14) + 
-  labs(x = "Cumulative Proportion of Patients\n(Ranked by Proximity)", 
-       y = "Cumulative Proportion of Diabetes Cases") + 
-  theme(axis.title = element_text(color = "black", face = "bold"), 
-        legend.title = element_text(color = "black", face = "bold"), 
-        legend.position = "top") + 
-  scale_x_continuous(labels = percent_format()) + 
-  scale_y_continuous(labels = percent_format()) + 
-  scale_color_manual(values = cols, name = "Distance")
+ehr_food |> 
+  ggplot() +
+  geom_concentration(aes(x = MAP_PROXIMITY, y = HBA1C, color = "Driving Distance\n(Error-Free)"), 
+                      rank_ascend = FALSE, round_rank = 0) +
+  geom_concentration(aes(x = STRAIGHT_PROXIMITY, y = HBA1C, color = "Haversine Distance\n(Error-Prone)"), 
+                      rank_ascend = FALSE, round_rank = 0) +
+  geom_abline(slope = 1, intercept = 0, linetype = 2) +
+  scale_color_manual(values = c("Driving Distance\n(Error-Free)" = "#39558CFF", 
+                                "Haversine Distance\n(Error-Prone)" = "#E85362FF"), 
+                     name = "Proximity Based on") +
+  coord_equal() +
+  theme_minimal() +
+  labs(x = "Cumulative Proportion of Patients\n(Ranked by Proximity)",
+       y = "Cumulative Proportion of Hemoglobin A1c") + 
+  theme(axis.title = element_text(face = "bold"), 
+        legend.title = element_text(face = "bold")) + 
+  scale_x_continuous(labels = label_percent()) + 
+  scale_y_continuous(labels = label_percent())
 ```
 
 ### Concentration Index
