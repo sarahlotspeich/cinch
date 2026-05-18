@@ -126,7 +126,7 @@ ehr_food |>
 
 ### Concentration Index
 
-```{r}
+```{r, eval = FALSE}
 ## Concentration index based on straight-line proximity (unbinned)
 ci_straight = ci(ineqvar = ehr_food$NEG_STRAIGHT_PROXIMITY, ### Food environment exposure
                  outcome = ehr_food$HBA1C, ### Health outcome 
