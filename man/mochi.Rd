@@ -3,10 +3,10 @@
 \name{mochi}
 \alias{mochi}
 \title{Moment-based measurement error correction for the concentration index
-This function returns the moment-based concentration index estimates, correcting for measurement error in the rankingn variable by incorporating partial validation data.}
+This function returns the moment-based concentration index estimates, correcting for measurement error in the ranking variable by incorporating partial validation data.}
 \usage{
 mochi(
-  health,
+  outcome,
   unval_exposure,
   val_exposure,
   return_naive = FALSE,
@@ -14,20 +14,20 @@ mochi(
 )
 }
 \arguments{
-\item{health}{vector containing the health outcomes for all observations}
+\item{outcome}{vector containing the outcome outcomes for all observations}
 
-\item{unval_exposure}{vector (of the same length as \code{health}) containing the error-prone, unvalidated exposure on which all observations will be ranked}
+\item{unval_exposure}{vector (of the same length as \code{outcome}) containing the error-prone, unvalidated exposure on which all observations will be ranked}
 
-\item{val_exposure}{vector (of the same length as \code{health}) containing the error-free, validated exposure on which all observations will be ranked. For observations that were not validated, this vector should contain \code{NA}.}
+\item{val_exposure}{vector (of the same length as \code{outcome}) containing the error-free, validated exposure on which all observations will be ranked. For observations that were not validated, this vector should contain \code{NA}.}
 
 \item{return_naive}{logical for whether the naive estimate (based only on \code{unval_exposure}) should be returned (if \code{TRUE}). The default is \code{FALSE}, in which case only the moment-based estimate is returned.}
 
 \item{include_se}{logical for whether jackknife standard error estimated should be returned}
 }
 \value{
-a list with the concentration index estimates requested
+a list with the concentration index estimates requested (and standard errors, where applicable)
 }
 \description{
 Moment-based measurement error correction for the concentration index
-This function returns the moment-based concentration index estimates, correcting for measurement error in the rankingn variable by incorporating partial validation data.
+This function returns the moment-based concentration index estimates, correcting for measurement error in the ranking variable by incorporating partial validation data.
 }
