@@ -23,7 +23,7 @@ mochi_estimate = function(outcome, unval_exposure, val_exposure, return_naive) {
   lambdahat_varRval <- (varRval + covRWval) /
     (varRval + varWval + 2 * covRWval) ## Estimated bias factor
   
-  # Estimate the concentratioin index
+  # Estimate the concentration index
   ## Naive: Using ranks based on error-prone for all observations
   mu_hat <- mean(outcome)
   varRstar <- var(Rstar) ## Var(R*) = Var(R)
@@ -37,16 +37,20 @@ mochi_estimate = function(outcome, unval_exposure, val_exposure, return_naive) {
   
   # Return estimates
   if (return_naive) {
+    ### Estimate the standard error for the naive concentration index
+    se_ci_naive <- delta_method_se(outcome = outcome, 
+                                   exposure = unval_exposure)
     return(
       list(
-        ci.moment = as.numeric(ci_xmb),
-        ci.naive = as.numeric(ci_xstar)
+        ci_moment = as.numeric(ci_xmb),
+        ci_naive = as.numeric(ci_xstar), 
+        se_ci_naive = as.numeric(se_ci_naive)
         )
       )
   } else {
     return(
       list(
-        ci.moment = as.numeric(ci_xmb)
+        ci_moment = as.numeric(ci_xmb)
         )
       )
   }

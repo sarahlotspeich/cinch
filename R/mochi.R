@@ -43,16 +43,17 @@ mochi <- function(outcome, unval_exposure, val_exposure, return_naive = FALSE, i
   if (return_naive) {
     return(
       list(
-        ci.moment = c_hat[[1]],
-        ci.moment.se = se_jack,
-        ci.naive = c_hat[[2]]
+        ci_moment = c_hat[["ci_moment"]],
+        se_ci_moment = se_jack,
+        ci_naive = c_hat[["ci_naive"]], 
+        se_ci_naive = c_hat[["se_ci_naive"]]
         )
       )
   } else {
     return(
       list(
-        ci.moment = c_hat[[1]],
-        ci.moment.se = se_jack
+        ci_moment = c_hat[["ci_moment"]],
+        se_ci_moment = se_jack
         )
     )
   }
