@@ -19,6 +19,8 @@ library(dplyr) ## for data wrangling
 library(ggplot2) ## for plots 
 library(latex2exp) ## for LaTeX in plots
 library(scales) ## for percent labels in plots
+
+# Run once: devtools::install_github("sarahlotspeich/ggconc")
 library(ggconc) ## for concentration curves
 
 # Run once: devtools::install_github("sarahlotspeich/mochi")
@@ -58,7 +60,7 @@ ehr_food = ehr_food |>
 
 For the current work, we wanted to simulate hemoglobin A1c (HbA1c, a biomarker for blood glucose that is key for monitoring type-2 diabetes) for these patients. The goal was to demonstrate how these patients' error-prone versus error-free proximity to healthy foods (from the real EHR data) may tell a different story about potential disparities in HbA1c. In the code chunk below, we demonstrate how HbA1c was generated for a single Monte Carlo simulation, where the targeted magnitude of the disparity was $C \approx 0.5$.  
 
-```{r}
+```{r, include = FALSE}
 # Set parameters to generate Y|R
 beta0 = 2.5     ## average HbA1c for patients with optimal proximity (0 miles)
 beta1 = -3.0    ## coefficient on fractional rank based of proximity (in miles)
@@ -69,6 +71,24 @@ ehr_food = ehr_food |>
   mutate(HBA1C = rnorm(n = n(), 
                        mean = beta0 + beta1 * MAP_RANK, 
                        sd = 1))
+
+## Inspect data summary
+ehr_food |> 
+  summary()
+```
+
+```{r}
+# Set parameters to generate Y|X
+## You will want to play around with these... 
+beta0 = 3    ## average HbA1c for patients with optimal proximity (0 miles)
+beta1 = 0.3    ## coefficient on proximity (in miles)
+
+# Add column with generated Y|R
+set.seed(918) ## for reproducibility
+ehr_food = ehr_food |> 
+  mutate(HBA1C = rlnorm(n = n(), 
+                        mean = beta0 + beta1 * MAP_PROXIMITY, 
+                        sd = 1))
 
 ## Inspect data summary
 ehr_food |> 
