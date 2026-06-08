@@ -99,6 +99,26 @@ ehr_food |>
 
 ```{r}
 ehr_food |> 
+  ggplot() + 
+  geom_histogram(aes(x = MAP_PROXIMITY), fill = "blue") +
+  geom_histogram(aes(x = STRAIGHT_PROXIMITY), fill = "red") +
+  theme_minimal(base_size = 14) + 
+  labs(x = TeX("Proximity"), 
+       y = TeX("Number of Patients"))
+```
+
+```{r}
+ehr_food |> 
+  ggplot() + 
+  geom_histogram(aes(x = STRAIGHT_PROXIMITY - MAP_PROXIMITY), 
+                 fill = "green") +
+  theme_minimal(base_size = 14) + 
+  labs(x = TeX("Difference Between Straight-Line and Map-Based Proximity $U = X^*-X$"), 
+       y = TeX("Number of Patients"))
+```
+
+```{r}
+ehr_food |> 
   ggplot(aes(x = MAP_PROXIMITY, y = STRAIGHT_PROXIMITY)) + 
   geom_point() + 
   geom_smooth(se = FALSE) + 
