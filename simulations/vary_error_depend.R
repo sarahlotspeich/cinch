@@ -5,8 +5,7 @@ library(mochi) ## for moment-based correction
 library(auditDesignR) ## for validation study designs 
 
 # Source script for simulate_data() function
-#devtools::source_url("https://raw.githubusercontent.com/sarahlotspeich/mochi/refs/heads/main/simulations/sim_data.R")
-source("~/Documents/cinch/simulations/sim_data.R")
+devtools::source_url("https://raw.githubusercontent.com/sarahlotspeich/mochi/refs/heads/main/simulations/sim_data.R")
 
 # Set useful constants 
 sim_seed = 11422 ## For reproducibility, seed to start each setting
