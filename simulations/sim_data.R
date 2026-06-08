@@ -1,6 +1,6 @@
 # Function to simulate data 
 ## Choose standard deviation of errors, total sample size, approx CI, validation proportion, and correlation between disadvantage and errors
-sim_data <- function(error_sd, n, approx_ci, pv = 0.1, rho_XU = 0) {
+sim_data <- function(error_sd, x_sd = 1, n, approx_ci, pv = 0.1, rho_xu = 0) {
   # Get beta0/beta1 params from approx_ci 
   if (approx_ci == -0.5) {
     beta0 <- 2.5
@@ -14,13 +14,13 @@ sim_data <- function(error_sd, n, approx_ci, pv = 0.1, rho_XU = 0) {
   }
   
   # Define the covariance matrix between error-free disadvantage and error 
-  Sigma_XU <- matrix(data = c(1, rho_XU * error_sd, rho_XU * error_sd, error_sd ^ 2), 
+  Sigma_xu <- matrix(data = c(x_sd ^ 2, rho_xu * error_sd, rho_xu * error_sd, error_sd ^ 2), 
                      nrow = 2)
   
   # Simulate error-free disadvantage and error from bivariate normal 
   XU <- MASS::mvrnorm(n = n, 
                       mu = c(1.8, 0), 
-                      Sigma = Sigma_XU)
+                      Sigma = Sigma_xu)
   X <- XU[, 1] ## Error-free disadvantage
   U <- XU[, 2] ## Errors in disadvantage
 
