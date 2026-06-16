@@ -2,8 +2,7 @@
 % Please edit documentation in R/mochi.R
 \name{mochi}
 \alias{mochi}
-\title{Moment-based measurement error correction for the concentration index
-This function returns the moment-based concentration index estimates, correcting for measurement error in the ranking variable by incorporating partial validation data.}
+\title{Moment-based measurement error correction for the concentration index}
 \usage{
 mochi(
   outcome,
@@ -37,6 +36,5 @@ mochi(
 a list with the concentration index estimates requested (and standard errors, where applicable)
 }
 \description{
-Moment-based measurement error correction for the concentration index
 This function returns the moment-based concentration index estimates, correcting for measurement error in the ranking variable by incorporating partial validation data.
 }
