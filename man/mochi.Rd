@@ -11,6 +11,8 @@ mochi(
   val_exposure,
   return_naive = FALSE,
   include_se = FALSE,
+  bootstraps = 1000,
+  conf_level = 0.95,
   rank_ascend = TRUE
 )
 }
@@ -23,7 +25,11 @@ mochi(
 
 \item{return_naive}{logical for whether the naive estimate (based only on \code{unval_exposure}) should be returned (if \code{TRUE}). The default is \code{FALSE}, in which case only the moment-based estimate is returned.}
 
-\item{include_se}{logical for whether jackknife standard error estimated should be returned}
+\item{include_se}{logical for whether standard error estimate should be returned. The default is \code{FALSE}.}
+
+\item{bootstraps}{scalar for how many bootstrap resamples should be used to estimate standard errors (if \code{include_se = TRUE}). The default is \code{1000}. For jackknife (leave-one-out) resampling, let \code{bootstraps = 0}.}
+
+\item{conf_level}{scalar (between 0 and 1) for confidence level of confidence intervals (if \code{include_se = TRUE}). The default is \code{0.95} for 95% confidence intervals.}
 
 \item{rank_ascend}{logical for whether exposure is ranked in ascending or descending order. The default is \code{TRUE}.}
 }
