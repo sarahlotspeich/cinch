@@ -6,10 +6,15 @@
 #' @param val_exposure vector (of the same length as \code{outcome}) containing the error-free, validated exposure on which all observations will be ranked. For observations that were not validated, this vector should contain \code{NA}.
 #' @param return_naive logical for whether the naive estimate (based only on \code{unval_exposure}) should be returned (if \code{TRUE}). The default is \code{FALSE}, in which case only the moment-based estimate is returned.
 #' @param include_se logical for whether jackknife standard error estimated should be returned
+#' @param rank_ascend logical for whether exposure is ranked in ascending or descending order. The default is \code{TRUE}.
 #' @return a list with the concentration index estimates requested (and standard errors, where applicable)
 #' @export
 
-mochi <- function(outcome, unval_exposure, val_exposure, return_naive = FALSE, include_se = FALSE) {
+mochi <- function(outcome, unval_exposure, val_exposure, return_naive = FALSE, include_se = FALSE, rank_ascend = TRUE) {
+  if(!rank_ascend) {
+    unval_exposure = unval_exposure * -1
+    val_exposure = val_exposure * -1
+  }
   # Estimate concentration index 
   c_hat <- mochi_estimate(outcome = outcome, 
                           unval_exposure = unval_exposure, 
