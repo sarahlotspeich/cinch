@@ -15,6 +15,8 @@ Authors: c(
   )
 Description: Uses moment-based estimator to correct the concentration index for 
     measurement error in the ranking variable.
+Imports:
+    sandwich
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true

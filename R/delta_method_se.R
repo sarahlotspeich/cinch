@@ -14,7 +14,9 @@ delta_method_se <- function(outcome, exposure) {
   premult <- 2 * varR / (mu_hat ^ 2) 
   beta0_hat <- fit_ci$coefficients[1]
   beta1_hat <- fit_ci$coefficients[2]
-  cov_hat <- vcov(fit_ci)
+  
+  ## Replace vcov with Newey-West covariance matrix
+  cov_hat <- sandwich::NeweyWest(fit_ci)
   
   ## Calculate standard errors from delta method formula
   var_ci <- premult ^ 2 * 
