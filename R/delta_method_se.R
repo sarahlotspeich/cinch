@@ -1,3 +1,4 @@
+#' @export
 delta_method_se <- function(outcome, exposure) {
   # Save useful constants
   n <- length(exposure) ## total number of observations
