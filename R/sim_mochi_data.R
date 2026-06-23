@@ -11,7 +11,7 @@
 #' @param val_prop scalar for proportion of \code{n} to be sampled for the validation study (via simple random sampling). Default is \code{val_prop = 0.1}. 
 #' @return a dataframe
 #' @export
-
+#' 
 sim_mochi_data <- function(var_error = 1, var_exposure = 0.6, diff_exposure_error = FALSE, diff_exposure_error_mult = 1, approx_disparity = -0.5, n = 1000, val_prop = 0.1) {
   # Get beta0/beta1 params from approx_disparity 
   if (approx_disparity == -0.5) {
