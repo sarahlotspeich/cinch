@@ -7,7 +7,8 @@
 sim_mochi_data(
   var_error = 1,
   var_exposure = 0.6,
-  corr_exposure_error = 0.9,
+  diff_exposure_error = FALSE,
+  diff_exposure_error_mult = 1,
   approx_disparity = -0.5,
   n = 1000,
   val_prop = 0.1
@@ -18,7 +19,9 @@ sim_mochi_data(
 
 \item{var_exposure}{scalar for the variance of the exposure. Default is \code{var_exposure = 0.6}.}
 
-\item{corr_exposure_error}{scalar for the correlation between the exposure and its measurement errors. Default is \code{corr_exposure_error = 0.9}.}
+\item{diff_exposure_error}{logical for whether the measurement error should have its mean based on the exposure. Default is \code{diff_exposure_error = FALSE} (independence, classical measurement error).}
+
+\item{diff_exposure_error_mult}{optional, if \code{diff_exposure_error = TRUE}, scalar for the multiplier in the mean of the errors. Default is \code{diff_exposure_error_mult = 1}, which centers the measurement errors at the exposure.}
 
 \item{approx_disparity}{scalar for the approximate concentration index underlying the error-free exposure and outcome. Default is \code{approx_disparity = -0.5}.}
 

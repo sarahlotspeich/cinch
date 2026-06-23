@@ -4,14 +4,15 @@
 #'
 #' @param var_exposure scalar for the variance of the exposure. Default is \code{var_exposure = 0.6}. 
 #' @param var_error scalar for the variance of the errors in the exposure. Default is \code{var_error = 1}. 
-#' @param corr_exposure_error scalar for the correlation between the exposure and its measurement errors. Default is \code{corr_exposure_error = 0.9}.
+#' @param diff_exposure_error logical for whether the measurement error should have its mean based on the exposure. Default is \code{diff_exposure_error = FALSE} (independence, classical measurement error).
+#' @param diff_exposure_error_mult optional, if \code{diff_exposure_error = TRUE}, scalar for the multiplier in the mean of the errors. Default is \code{diff_exposure_error_mult = 1}, which centers the measurement errors at the exposure. 
 #' @param approx_disparity scalar for the approximate concentration index underlying the error-free exposure and outcome. Default is \code{approx_disparity = -0.5}.
 #' @param n scalar for total sample size generated. Default is \code{n = 1000}. 
 #' @param val_prop scalar for proportion of \code{n} to be sampled for the validation study (via simple random sampling). Default is \code{val_prop = 0.1}. 
 #' @return a dataframe
 #' @export
 
-sim_mochi_data <- function(var_error = 1, var_exposure = 0.6, corr_exposure_error = 0.9, approx_disparity = -0.5, n = 1000, val_prop = 0.1) {
+sim_mochi_data <- function(var_error = 1, var_exposure = 0.6, diff_exposure_error = FALSE, diff_exposure_error_mult = 1, approx_disparity = -0.5, n = 1000, val_prop = 0.1) {
   # Get beta0/beta1 params from approx_disparity 
   if (approx_disparity == -0.5) {
     beta0 <- 2.5
@@ -24,19 +25,15 @@ sim_mochi_data <- function(var_error = 1, var_exposure = 0.6, corr_exposure_erro
     beta1 <- 3
   }
   
-  # Define the covariance matrix between error-free disadvantage and error 
-  error_sd <- sqrt(var_error)
-  x_sd <- sqrt(var_exposure)
-  Sigma_xu <- matrix(data = c(x_sd ^ 2, corr_exposure_error * x_sd * error_sd, 
-                              corr_exposure_error * x_sd * error_sd, error_sd ^ 2), 
-                     nrow = 2)
+  # Simulate error-free disadvantage
+  X <- rnorm(n = n, 
+             mean = 1.8, 
+             sd = sqrt(var_exposure)) 
   
-  # Simulate error-free disadvantage and error from bivariate normal 
-  XU <- MASS::mvrnorm(n = n, 
-                      mu = c(1.8, 0), 
-                      Sigma = Sigma_xu)
-  X <- XU[, 1] ## Error-free disadvantage
-  U <- XU[, 2] ## Errors in disadvantage
+  # Simulate measurement error for disadvantage
+  U <- rnorm(n = n, 
+             mean = as.numeric(diff_exposure_error) * (- diff_exposure_error_mult * X), 
+             sd = sqrt(var_error)) 
 
   # Error-free fractional rank
   R <- (rank(X) - 1) / n + 1 / (2 * n)
