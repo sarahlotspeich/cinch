@@ -1,5 +1,5 @@
 #' @export
-delta_method_se <- function(outcome, exposure) {
+delta_method_se <- function(outcome, exposure, is_cc_se = FALSE) {
   # Save useful constants
   n <- length(exposure) ## total number of observations
 
@@ -17,7 +17,14 @@ delta_method_se <- function(outcome, exposure) {
   beta1_hat <- fit_ci$coefficients[2]
   
   ## Replace vcov with Newey-West covariance matrix
-  cov_hat <- sandwich::NeweyWest(fit_ci)
+  if (!is_cc_se) {
+    cov_hat <- sandwich::NeweyWest(fit_ci)
+  } else {
+    cov_hat <- sandwich::NeweyWest(fit_ci, 
+                                   lag = n - 1, 
+                                   prewhite = FALSE, 
+                                   adjust = TRUE)
+  }
   
   ## Calculate standard errors from delta method formula
   var_ci <- premult ^ 2 * 
