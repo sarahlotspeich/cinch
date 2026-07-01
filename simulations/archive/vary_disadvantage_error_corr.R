@@ -1,20 +1,10 @@
 # Load packages
 ## RUN ONCE: devtools::install_github("sarahlotspeich/mochi")
 library(mochi) ## for moment-based correction
-## RUN ONCE: devtools::install_github("sarahlotspeich/auditDesignR")
-library(auditDesignR) ## for validation study designs 
-
-# Source script for simulate_data() function
-devtools::source_url("https://raw.githubusercontent.com/sarahlotspeich/mochi/refs/heads/main/simulations/sim_data.R")
 
 # Set useful constants 
 sim_seed = 11422 ## For reproducibility, seed to start each setting
 num_rep = 1000 ## Number of replications per setting
-
-# Set constants that are not varied between simulation settings 
-N = 1000 ## total sample size
-val_prop = 0.1 ## validation study size
-sigma2U = 0.5 ## error variance (less error-prone group)
 
 # Loop over different error variances and concentration indices 
 df_res = data.frame( ## initialize empty dataframe to hold results
@@ -28,16 +18,18 @@ df_res = data.frame( ## initialize empty dataframe to hold results
   se_nv_ci = NA
 )  
 for (ci in c(-0.5, 0, 0.5)) {
-  for (rho in c(-0.5, 0, 0.5)) {
+  for (rho in c(-0.9, -0.6, -0.3, 0.3, 0.6, 0.9)) {
     set.seed(sim_seed) ## for reproducibility 
     for (r in 1:num_rep) {
-      ## Simulate data for group 1 (less error-prone)
-      dat = sim_data(error_sd = sqrt(sigma2U), 
-                     n = N, 
-                     approx_ci = ci, 
-                     pv = val_prop, 
-                     rho_XU = rho)
-
+      ## Simulate data 
+      dat <- sim_mochi_data(
+        var_error = 1, ## fixed: Var(U) = 1 
+        var_exposure = 0.6, ## fixed: Var(X) = 0.6
+        corr_exposure_error = rho,
+        approx_disparity = ci,
+        n = 1000, ## fixed: N = 1000
+        val_prop = 0.1 ## fixed: n/N = 0.1
+      )
       ## Calculate oracle/fully validated CI
       mu_hat <- mean(dat$Y)
       varR <- var(dat$R)
