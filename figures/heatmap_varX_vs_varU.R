@@ -5,8 +5,8 @@ grid <- expand.grid(
 )
 
 ## Calculate attenuation factor based on N = 1000 people 
-grid$attenuation <- mapply(function(esd, esx) {
-  dat <- sim_data(x_sd = sqrt(esx), error_sd = sqrt(esd), n = 1000, approx_ci = 0.5, rho_xu = -0.9)
+grid$attenuation <- mapply(function(varU, varX) {
+  dat <- sim_mochi_data(var_error = varU, var_exposure = varX, diff_exposure_error = FALSE, diff_exposure_error_mult = 1, approx_disparity = 0.5, n = 1000, val_prop = 0.1)
   cov(dat$R, dat$Rstar) / var(dat$Rstar)
 }, grid$error_var, grid$x_var)
 
