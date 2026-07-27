@@ -25,7 +25,8 @@ mochi <- function(outcome, unval_exposure, val_exposure, return_naive = FALSE, r
   c_hat <- mochi_estimate(outcome = outcome, 
                           unval_exposure = unval_exposure, 
                           val_exposure = val_exposure, 
-                          return_naive = return_naive) 
+                          return_naive = return_naive, 
+                          return_cc = return_cc) 
   
   # If requested, calculate jacknife standard error
   if(include_se) {

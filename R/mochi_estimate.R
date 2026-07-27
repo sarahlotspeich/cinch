@@ -1,4 +1,4 @@
-mochi_estimate = function(outcome, unval_exposure, val_exposure, return_naive) {
+mochi_estimate = function(outcome, unval_exposure, val_exposure, return_naive, return_cc) {
   # Save useful constants
   n <- length(unval_exposure) ## total number of observations
   nv <- sum(!is.na(val_exposure)) ## size of the validation sample
