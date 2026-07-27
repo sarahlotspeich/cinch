@@ -14,7 +14,7 @@
 #' @return a list with the concentration index estimates requested (and standard errors, where applicable)
 #' @export
 #' 
-mochi <- function(outcome, unval_exposure, val_exposure, return_naive = FALSE, include_se = FALSE, bootstraps = 1000, conf_level = 0.95, rank_ascend = TRUE) {
+mochi <- function(outcome, unval_exposure, val_exposure, return_naive = FALSE, return_cc = FALSE, include_se = FALSE, bootstraps = 1000, conf_level = 0.95, rank_ascend = TRUE) {
   # If requested, negate exposures to make larger values more disadvantaged (lower rank)
   if(!rank_ascend) {
     unval_exposure <- unval_exposure * -1

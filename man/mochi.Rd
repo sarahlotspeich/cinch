@@ -9,6 +9,7 @@ mochi(
   unval_exposure,
   val_exposure,
   return_naive = FALSE,
+  return_cc = FALSE,
   include_se = FALSE,
   bootstraps = 1000,
   conf_level = 0.95,
@@ -24,6 +25,8 @@ mochi(
 
 \item{return_naive}{logical for whether the naive estimate (based only on \code{unval_exposure}) should be returned (if \code{TRUE}). The default is \code{FALSE}.}
 
+\item{return_cc}{logical for whether the complete-case estimate (based only on those with non-missing \code{val_exposure}) should be returned (if \code{TRUE}). The default is \code{FALSE}.}
+
 \item{include_se}{logical for whether standard error estimate should be returned. The default is \code{FALSE}.}
 
 \item{bootstraps}{scalar for how many bootstrap resamples should be used to estimate standard errors (if \code{include_se = TRUE}). The default is \code{1000}. For jackknife (leave-one-out) resampling, let \code{bootstraps = 0}.}
@@ -31,8 +34,6 @@ mochi(
 \item{conf_level}{scalar (between 0 and 1) for confidence level of confidence intervals (if \code{include_se = TRUE}). The default is \code{0.95} for 95% confidence intervals.}
 
 \item{rank_ascend}{logical for whether exposure is ranked in ascending or descending order. The default is \code{TRUE}.}
-
-\item{return_cc}{logical for whether the complete-case estimate (based only on those with non-missing \code{val_exposure}) should be returned (if \code{TRUE}). The default is \code{FALSE}.}
 }
 \value{
 a list with the concentration index estimates requested (and standard errors, where applicable)
