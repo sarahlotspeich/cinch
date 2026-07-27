@@ -30,23 +30,67 @@ mochi_estimate = function(outcome, unval_exposure, val_exposure, return_naive) {
   fit_ci_naive <- lm(outcome ~ Rstar)
   beta1star_hat <- fit_ci_naive$coefficients[2]
   ci_premult <- 2 * varRstar / mu_hat
-  ci_xstar <- ci_premult * beta1star_hat ## Error-prone CI
+  ci_xstar <- as.numeric(ci_premult * beta1star_hat) ## Error-prone CI
   
   ## Moment-based: Divide naive by estimate of bias factor
-  ci_xmb <- ci_xstar / lambdahat_varRval
+  ci_xmb <- as.numeric(ci_xstar / lambdahat_varRval)
+  
+  ## Complete-case: Keep only observations with non-missing error-free 
+  outcome_cc <- outcome[V]
+  val_exposure_cc <- val_exposure[V]
+  rank_cc <- (rank(val_exposure_cc) - 1) / nv + 1 / (2 * nv)
+  mu_hat_cc <- mean(outcome_cc) 
+  varR_cc <- var(rank_cc)
+  fit_ci_cc <- lm(outcome_cc ~ rank_cc)
+  beta1_hat_cc <- fit_ci_cc$coefficients[2]
+  ci_premult <- 2 * varR_cc / mu_hat_cc
+  ci_cc <- as.numeric(ci_premult * beta1_hat_cc) ## Complete-case CI
   
   # Return estimates
   if (return_naive) {
-    ### Estimate the standard error for the naive concentration index
+    ### Estimate the standard error for the complete-case concentration index 
+    ### using jacknknife (sample generally too small for delta method)
     se_ci_naive <- delta_method_se(outcome = outcome, 
                                    exposure = unval_exposure)
-    return(
-      list(
-        ci_moment = as.numeric(ci_xmb),
-        ci_naive = as.numeric(ci_xstar), 
-        se_ci_naive = as.numeric(se_ci_naive)
+    if (return_cc) {
+      ### Estimate the standard error for the naive concentration index
+      se_ci_cc <- cc_jacknife_se(outcome = outcome_cc, 
+                                 val_exposure = val_exposure_cc, 
+                                 conf_level = conf_level)
+      return(
+        list(
+          ci_moment = ci_xmb,
+          ci_naive = ci_xstar, 
+          se_ci_naive = se_ci_naive, 
+          ci_cc = ci_cc, 
+          se_ci_cc = se_ci_cc[["se"]], 
+          lb_ci_cc = se_ci_cc[["lb"]], 
+          ub_ci_cc = se_ci_cc[["ub"]]
         )
       )
+    } else if (return_cc) {
+      ### Estimate the standard error for the naive concentration index
+      se_ci_cc <- cc_jacknife_se(outcome = outcome_cc, 
+                                 val_exposure = val_exposure_cc, 
+                                 conf_level = conf_level)
+      return(
+        list(
+          ci_moment = ci_xmb,
+          ci_cc = ci_cc, 
+          se_ci_cc = se_ci_cc[["se"]], 
+          lb_ci_cc = se_ci_cc[["lb"]], 
+          ub_ci_cc = se_ci_cc[["ub"]]
+        )
+      )
+    } else {
+      return(
+        list(
+          ci_moment = as.numeric(ci_xmb),
+          ci_naive = as.numeric(ci_xstar), 
+          se_ci_naive = as.numeric(se_ci_naive)
+        )
+      )
+    }
   } else {
     return(
       list(
