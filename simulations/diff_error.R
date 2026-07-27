@@ -1,5 +1,5 @@
 # Load packages
-## RUN ONCE: devtools::install_github("sarahlotspeich/mochi")
+## RUN ONCE: pak::pak("sarahlotspeich/mochi")
 library(mochi) ## for moment-based correction
 
 # Set useful constants 
@@ -21,7 +21,7 @@ df_res = data.frame( ## initialize empty dataframe to hold results
   se_nv_ci = NA
 )  
 for (ci in c(-0.5, 0, 0.5)) {
-  for (k in c(0, 0.5, 1)) {
+  for (k in c(0, 0.6, 1.2)) {
     set.seed(sim_seed) ## for reproducibility 
     for (r in 1:num_rep) {
       ## Simulate data 
@@ -50,23 +50,13 @@ for (ci in c(-0.5, 0, 0.5)) {
       covR_Rstar <- cov(dat$R, dat$Rstar)
       lambda <- covR_Rstar / varRstar
 
-      ## Calculate complete-case/partially validated CI
-      cc_dat <- dat[!is.na(dat$Xval), ]
-      mu_hat <- mean(cc_dat$Y) 
-      varR <- var(cc_dat$Rval)
-      fit_ci_cc <- lm(Y ~ Rval, data = cc_dat)
-      beta1_hat <- fit_ci_cc$coefficients[2]
-      cc_ci <- 2 * varR / mu_hat * beta1_hat
-      se_cc_ci <- delta_method_se(
-        outcome = cc_dat$Y,
-        exposure = cc_dat$Xval)
-      
-      ## Calculate moment-based and naive CI using mochi()
-      mochi_res <- mochi(outcome = dat$Y, 
-                         unval_exposure = dat$Xstar, 
-                         val_exposure = dat$Xval, 
-                         include_se = TRUE, 
-                         return_naive = TRUE, 
+      ## Calculate moment-based, complete-case, and naive CI using mochi()
+      mochi_res <- mochi(outcome = dat$Y,
+                         unval_exposure = dat$Xstar,
+                         val_exposure = dat$Xval,
+                         include_se = TRUE,
+                         return_naive = TRUE,
+                         return_cc = TRUE,
                          bootstraps = 0) ### use jackknife
       
       ## Combine, row stack, and save 
@@ -76,8 +66,8 @@ for (ci in c(-0.5, 0, 0.5)) {
         gs_lambda = lambda,
         gs_ci = oracle_ci, 
         se_gs_ci = se_oracle_ci,
-        cc_ci = cc_ci, 
-        se_cc_ci = se_cc_ci, 
+        cc_ci = mochi_res$ci_cc, 
+        se_cc_ci = mochi_res$se_ci_cc,
         mb_ci = mochi_res$ci_moment, 
         se_mb_ci = mochi_res$se_ci_moment, 
         nv_ci = mochi_res$ci_naive, 
