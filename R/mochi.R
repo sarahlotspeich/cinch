@@ -5,7 +5,8 @@
 #' @param outcome vector containing the outcome outcomes for all observations
 #' @param unval_exposure vector (of the same length as \code{outcome}) containing the error-prone, unvalidated exposure on which all observations will be ranked
 #' @param val_exposure vector (of the same length as \code{outcome}) containing the error-free, validated exposure on which all observations will be ranked. For observations that were not validated, this vector should contain \code{NA}.
-#' @param return_naive logical for whether the naive estimate (based only on \code{unval_exposure}) should be returned (if \code{TRUE}). The default is \code{FALSE}, in which case only the moment-based estimate is returned.
+#' @param return_naive logical for whether the naive estimate (based only on \code{unval_exposure}) should be returned (if \code{TRUE}). The default is \code{FALSE}.
+#' @param return_cc logical for whether the complete-case estimate (based only on those with non-missing \code{val_exposure}) should be returned (if \code{TRUE}). The default is \code{FALSE}.
 #' @param include_se logical for whether standard error estimate should be returned. The default is \code{FALSE}.
 #' @param bootstraps scalar for how many bootstrap resamples should be used to estimate standard errors (if \code{include_se = TRUE}). The default is \code{1000}. For jackknife (leave-one-out) resampling, let \code{bootstraps = 0}.
 #' @param conf_level scalar (between 0 and 1) for confidence level of confidence intervals (if \code{include_se = TRUE}). The default is \code{0.95} for 95% confidence intervals. 
@@ -80,15 +81,46 @@ mochi <- function(outcome, unval_exposure, val_exposure, return_naive = FALSE, i
   
   # Return estimates
   if (return_naive) {
-    return(
-      list(
-        ci_moment = c_hat[["ci_moment"]],
-        se_ci_moment = se,
-        confint_ci_moment = c(lb, ub), 
-        ci_naive = c_hat[["ci_naive"]], 
-        se_ci_naive = c_hat[["se_ci_naive"]]
+    ## Calculate Wald-type confidence intervals for naive 
+    lb_ci_naive <- c_hat[["ci_naive"]] - 1.96 * c_hat[["se_ci_naive"]]
+    ub_ci_naive <- c_hat[["ci_naive"]] + 1.96 * c_hat[["se_ci_naive"]]
+    if (return_cc) {
+      return(
+        list(
+          ci_moment = c_hat[["ci_moment"]],
+          se_ci_moment = se,
+          confint_ci_moment = c(lb, ub), 
+          ci_naive = c_hat[["ci_naive"]], 
+          se_ci_naive = c_hat[["se_ci_naive"]],
+          confint_ci_naive = c(lb_ci_naive, ub_ci_naive),
+          ci_cc = c_hat[["ci_cc"]], 
+          se_ci_cc = c_hat[["se_ci_cc"]],
+          confint_ci_cc = c(c_hat[["lb_ci_cc"]], c_hat[["ub_ci_cc"]])
         )
       )
+    } else if (return_cc) {
+      return(
+        list(
+          ci_moment = c_hat[["ci_moment"]],
+          se_ci_moment = se,
+          confint_ci_moment = c(lb, ub), 
+          ci_cc = c_hat[["ci_cc"]], 
+          se_ci_cc = c_hat[["se_ci_cc"]],
+          confint_ci_cc = c(c_hat[["lb_ci_cc"]], c_hat[["ub_ci_cc"]])
+        )
+      )
+    } else {
+      return(
+        list(
+          ci_moment = c_hat[["ci_moment"]],
+          se_ci_moment = se,
+          confint_ci_moment = c(lb, ub), 
+          ci_naive = c_hat[["ci_naive"]], 
+          se_ci_naive = c_hat[["se_ci_naive"]],
+          confint_ci_naive = c(lb_ci_naive, ub_ci_naive)
+        )
+      )
+    }
   } else {
     return(
       list(
