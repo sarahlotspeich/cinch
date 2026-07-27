@@ -8,8 +8,8 @@ cc_jacknife_se <- function(outcome, val_exposure, conf_level) {
     X <- val_exposure[-i]
     
     ## Compute complete-case concentration index excluding row i
-    outcome_cc <- Y[V]
-    val_exposure_cc <- X[V]
+    outcome_cc <- Y
+    val_exposure_cc <- X
     rank_cc <- (rank(val_exposure_cc) - 1) / (n - 1) + 1 / (2 * (n - 1))
     mu_hat_cc <- mean(outcome_cc) 
     varR_cc <- var(rank_cc)
