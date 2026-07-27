@@ -33,7 +33,7 @@ sim_mochi_data <- function(var_error = 1, var_exposure = 0.6, diff_exposure_erro
   # Simulate measurement error for disadvantage
   U <- rnorm(n = n, 
              mean = as.numeric(diff_exposure_error) * (- diff_exposure_error_mult * X), 
-             sd = sqrt(var_error)) 
+             sd = sqrt(var_error - as.numeric(diff_exposure_error) * (diff_exposure_error_mult ^ 2 * var_exposure))) 
 
   # Error-free fractional rank
   R <- (rank(X) - 1) / n + 1 / (2 * n)
